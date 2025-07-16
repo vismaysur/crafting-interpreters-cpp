@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 
+bool hadError{false};
+
 std::string readFile(std::string fileName) {
   std::ifstream file(fileName);
 
@@ -33,6 +35,9 @@ void runFile(std::string fileName) {
   std::string fileContent = readFile(fileName);
 
   run(fileContent);
+
+  if (hadError)
+    std::exit(EXIT_FAILURE);
 }
 
 void runPrompt() {
@@ -47,12 +52,19 @@ void runPrompt() {
       break;
 
     run(line);
+
+    hadError = false;
   }
+}
+
+void error(int line, std::string message) {
+  std::cout << "[line " << line << "] Error: " << message << "\n";
+  hadError = true;
 }
 
 int main(int argc, char *argv[]) {
   if (argc > 2) {
-    std::cerr << "Usage: cpplox [file]\n";
+    std::cerr << "Usage: CppLox [file]\n";
     return EXIT_FAILURE;
   } else if (argc == 2) {
     runFile(argv[1]);

@@ -1,0 +1,1 @@
+/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/CppLox.dir/src/main.cpp.o CMakeFiles/CppLox.dir/src/token.cpp.o -o CppLox
