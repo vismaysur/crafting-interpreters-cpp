@@ -1,3 +1,0 @@
-/Users/vismay/Code/crafting-interpreters-cpp/build/CMakeFiles/CppLox.dir
-/Users/vismay/Code/crafting-interpreters-cpp/build/CMakeFiles/edit_cache.dir
-/Users/vismay/Code/crafting-interpreters-cpp/build/CMakeFiles/rebuild_cache.dir
