@@ -1,5 +1,6 @@
 #include "token.hpp"
 #include <string>
+#include <iomanip>
 
 Token::Token(TokenType type, std::string lexeme, Literal literal, int line) {
   this->type = type;
@@ -17,6 +18,12 @@ struct LiteralVisitor {
 };
 
 std::string Token::toString() {
-  return std::to_string(static_cast<int>(type)) + " " + lexeme + " " +
-         std::visit(LiteralVisitor{}, literal);
+  std::ostringstream oss {};
+
+  oss << std::setw(10) << std::to_string(static_cast<int>(type));
+  oss << std::setw(10) << lexeme;
+  oss << std::setw(10) << std::visit(LiteralVisitor{}, literal);
+  oss << std::setw(10) << line;
+
+  return oss.str();
 }

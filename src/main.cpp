@@ -36,6 +36,8 @@ void run(std::string source) {
   Scanner *scanner = new Scanner(source, reporter);
   std::vector<Token *> tokens = scanner->scanTokens();
 
+  std::cout << "---- TOKENS ----\n";
+
   for (Token *token : tokens)
     std::cout << token->toString() << "\n";
 }

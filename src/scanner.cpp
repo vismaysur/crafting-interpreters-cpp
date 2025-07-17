@@ -13,7 +13,7 @@ std::vector<Token *> Scanner::scanTokens() {
     scanToken();
   }
 
-  tokens.push_back(new Token(TokenType::_EOF, "", nullptr, line));
+  tokens.push_back(new Token(TokenType::_EOF, "", std::monostate{}, line));
   return tokens;
 }
 
@@ -131,7 +131,7 @@ char Scanner::peekNext() {
 void Scanner::addToken(TokenType type) { addToken(type, ""); }
 
 void Scanner::addToken(TokenType type, Literal literal) {
-  std::string text = source.substr(start, current - start + 1);
+  std::string text = source.substr(start, current - start);
 
   tokens.push_back(new Token(type, text, literal, line));
 }
