@@ -1,9 +1,12 @@
+#include "error_reporter.hpp"
+#include "scanner.hpp"
+#include "token.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 
-bool hadError{false};
+ErrorReporter reporter{};
 
 std::string readFile(std::string fileName) {
   std::ifstream file(fileName);
@@ -29,14 +32,20 @@ std::string readFile(std::string fileName) {
   return content;
 }
 
-void run(std::string source) {}
+void run(std::string source) {
+  Scanner *scanner = new Scanner(source, reporter);
+  std::vector<Token *> tokens = scanner->scanTokens();
+
+  for (Token *token : tokens)
+    std::cout << token->toString() << "\n";
+}
 
 void runFile(std::string fileName) {
   std::string fileContent = readFile(fileName);
 
   run(fileContent);
 
-  if (hadError)
+  if (reporter.hadError)
     std::exit(EXIT_FAILURE);
 }
 
@@ -53,13 +62,8 @@ void runPrompt() {
 
     run(line);
 
-    hadError = false;
+    reporter.hadError = false;
   }
-}
-
-void error(int line, std::string message) {
-  std::cout << "[line " << line << "] Error: " << message << "\n";
-  hadError = true;
 }
 
 int main(int argc, char *argv[]) {

@@ -1,12 +1,15 @@
+#pragma once
+
+#include "error_reporter.hpp"
+#include "token.hpp"
 #include <unordered_map>
 #include <vector>
-
-#include "token.hpp"
 
 class Scanner {
 private:
   std::string source;
   std::vector<Token *> tokens{};
+  ErrorReporter &errorReporter;
 
   std::unordered_map<std::string, TokenType> keywords{
       {"and", TokenType::AND},       {"class", TokenType::CLASS},
@@ -26,17 +29,17 @@ private:
 
   void addToken(TokenType type);
 
-  void addToken(TokenType type, std::string literal);
+  void addToken(TokenType type, Literal literal);
+
+  void consumeIdentifier();
 
   void consumeString();
 
   void consumeNumber();
 
-  void identifier();
+  bool isAlpha(char c);
 
-  bool isAlpha();
-
-  bool isAlphaNumeric();
+  bool isAlphaNumeric(char c);
 
   bool isAtEnd();
 
@@ -51,7 +54,7 @@ private:
   void scanToken();
 
 public:
-  Scanner(std::string source);
+  Scanner(std::string source, ErrorReporter &errorReporter);
 
   std::vector<Token *> scanTokens();
 };
