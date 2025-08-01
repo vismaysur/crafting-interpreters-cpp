@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -O0 CMakeFiles/CppLox.dir/src/error_reporter.cpp.o CMakeFiles/CppLox.dir/src/main.cpp.o CMakeFiles/CppLox.dir/src/parser.cpp.o CMakeFiles/CppLox.dir/src/scanner.cpp.o CMakeFiles/CppLox.dir/src/token.cpp.o -o CppLox 
