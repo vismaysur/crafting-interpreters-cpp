@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-ErrorReporter reporter{};
+ErrorReporter errorReporter{};
 
 std::string readFile(std::string fileName) {
   std::ifstream file(fileName);
@@ -14,6 +14,7 @@ std::string readFile(std::string fileName) {
   if (!file.is_open()) {
     std::cerr << "Failed to open file: " << fileName
               << ". Error: " << std::strerror(errno) << ".\n";
+    return "";
   }
 
   std::string content{};
@@ -25,6 +26,8 @@ std::string readFile(std::string fileName) {
 
   if (file.bad()) {
     std::cerr << "Error reading file: " << fileName << ".\n";
+    file.close();
+    return "";
   }
 
   file.close();
@@ -33,10 +36,8 @@ std::string readFile(std::string fileName) {
 }
 
 void run(std::string source) {
-  Scanner *scanner = new Scanner(source, reporter);
+  Scanner *scanner = new Scanner(source);
   std::vector<Token *> tokens = scanner->scanTokens();
-
-  std::cout << "---- TOKENS ----\n";
 
   for (Token *token : tokens)
     std::cout << token->toString() << "\n";
@@ -47,7 +48,7 @@ void runFile(std::string fileName) {
 
   run(fileContent);
 
-  if (reporter.hadError)
+  if (errorReporter.hadError)
     std::exit(EXIT_FAILURE);
 }
 
@@ -64,7 +65,7 @@ void runPrompt() {
 
     run(line);
 
-    reporter.hadError = false;
+    errorReporter.hadError = false;
   }
 }
 

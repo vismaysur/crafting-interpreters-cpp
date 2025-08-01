@@ -1,0 +1,3 @@
+/home/ubuntu/Code/crafting-interpreters-cpp/CMakeFiles/CppLox.dir
+/home/ubuntu/Code/crafting-interpreters-cpp/CMakeFiles/edit_cache.dir
+/home/ubuntu/Code/crafting-interpreters-cpp/CMakeFiles/rebuild_cache.dir

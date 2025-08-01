@@ -9,7 +9,6 @@ class Scanner {
 private:
   std::string source;
   std::vector<Token *> tokens{};
-  ErrorReporter &errorReporter;
 
   std::unordered_map<std::string, TokenType> keywords{
       {"and", TokenType::AND},       {"class", TokenType::CLASS},
@@ -29,7 +28,7 @@ private:
 
   void addToken(TokenType type);
 
-  void addToken(TokenType type, Literal literal);
+  void addToken(TokenType type, LiteralObject literal);
 
   void consumeIdentifier();
 
@@ -54,7 +53,7 @@ private:
   void scanToken();
 
 public:
-  Scanner(std::string source, ErrorReporter &errorReporter);
+  Scanner(std::string source);
 
   std::vector<Token *> scanTokens();
 };

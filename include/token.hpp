@@ -4,17 +4,16 @@
 #include <string>
 #include <variant>
 
-using Literal = std::variant<std::monostate, std::string, double>;
+using LiteralObject = std::variant<std::monostate, std::string, double, bool>;
 
 class Token {
-private:
+public:
   TokenType type;
   std::string lexeme;
-  Literal literal;
+  LiteralObject literal;
   int line;
 
-public:
-  Token(TokenType type, std::string lexeme, Literal literal, int line);
+  Token(TokenType type, std::string lexeme, LiteralObject literal, int line);
 
   std::string toString();
 };

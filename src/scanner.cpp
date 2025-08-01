@@ -1,11 +1,11 @@
 #include "scanner.hpp"
 #include "error_reporter.hpp"
 #include "token_type.hpp"
+#include <variant>
 
-Scanner::Scanner(std::string source, ErrorReporter &reporter)
-    : errorReporter(reporter) {
-  this->source = source;
-}
+extern ErrorReporter errorReporter;
+
+Scanner::Scanner(std::string source) { this->source = source; }
 
 std::vector<Token *> Scanner::scanTokens() {
   while (!isAtEnd()) {
@@ -98,7 +98,7 @@ void Scanner::scanToken() {
     } else if (isAlpha(c)) {
       consumeIdentifier();
     } else {
-      errorReporter.reportError(line, "Unexpected character");
+      errorReporter.reportError(line, "", "Unexpected character");
     }
     break;
   }
@@ -128,9 +128,9 @@ char Scanner::peekNext() {
   return source[current + 1];
 }
 
-void Scanner::addToken(TokenType type) { addToken(type, ""); }
+void Scanner::addToken(TokenType type) { addToken(type, std::monostate{}); }
 
-void Scanner::addToken(TokenType type, Literal literal) {
+void Scanner::addToken(TokenType type, LiteralObject literal) {
   std::string text = source.substr(start, current - start);
 
   tokens.push_back(new Token(type, text, literal, line));
@@ -144,7 +144,7 @@ void Scanner::consumeString() {
   }
 
   if (isAtEnd()) {
-    errorReporter.reportError(line, "Unterminated string.");
+    errorReporter.reportError(line, "", "Unterminated string.");
     return;
   }
 
@@ -178,6 +178,10 @@ void Scanner::consumeIdentifier() {
 
   if (keywords.find(text) != keywords.end()) {
     type = keywords[text];
+  }
+
+  if (type == TokenType::TRUE || type == TokenType::FALSE) {
+    addToken(type, type == TokenType::TRUE ? true : false);
   }
 
   addToken(type);
