@@ -18,8 +18,8 @@ void ErrorReporter::error(Token token, std::string message) {
   }
 }
 
-void ErrorReporter::runtimeError(RuntimeError error) {
-  std::cout << error.message << "\n[line " << error.token.line << "]"
+void ErrorReporter::runtimeError(RuntimeError *error) {
+  std::cout << error->message << "\n[line " << error->token.line << "]"
             << std::endl;
   hadRuntimeError = true;
 }

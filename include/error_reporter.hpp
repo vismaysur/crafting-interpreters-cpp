@@ -13,5 +13,5 @@ public:
 
   void error(Token token, std::string message);
 
-  void runtimeError(RuntimeError error);
+  void runtimeError(RuntimeError *error);
 };

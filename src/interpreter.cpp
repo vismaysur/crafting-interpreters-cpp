@@ -15,14 +15,14 @@ LiteralObject evaluate(Expr expr) { return std::visit(Interpreter{}, expr); }
 void checkNumberOperand(Token op, LiteralObject obj) {
   if (std::holds_alternative<double>(obj))
     return;
-  throw RuntimeError(op, "Operand must be a number.");
+  throw new RuntimeError(op, "Operand must be a number.");
 }
 
 void checkNumberOperands(Token op, LiteralObject obj1, LiteralObject obj2) {
   if (std::holds_alternative<double>(obj1) &&
       std::holds_alternative<double>(obj2))
     return;
-  throw RuntimeError(op, "Operands must be numbers.");
+  throw new RuntimeError(op, "Operands must be numbers.");
 }
 
 LiteralObject Interpreter::operator()(Literal literal) const {
@@ -56,23 +56,30 @@ LiteralObject Interpreter::operator()(Binary binary) const {
   switch (binary.op.type) {
   case TokenType::EQUAL:
     return left == right;
+
   case TokenType::BANG_EQUAL:
     return left != right;
+
   case TokenType::GREATER:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) > std::get<double>(right);
+
   case TokenType::LESS:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) < std::get<double>(right);
+
   case TokenType::GREATER_EQUAL:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) >= std::get<double>(right);
+
   case TokenType::LESS_EQUAL:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) <= std::get<double>(right);
+
   case TokenType::MINUS:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) - std::get<double>(right);
+
   case TokenType::PLUS:
     if (std::holds_alternative<double>(left) &&
         std::holds_alternative<double>(right))
@@ -82,14 +89,17 @@ LiteralObject Interpreter::operator()(Binary binary) const {
         std::holds_alternative<std::string>(right))
       return std::get<std::string>(left) + std::get<std::string>(right);
 
-    throw RuntimeError(binary.op,
-                       "Operands must be two numbers or two strings.");
+    throw new RuntimeError(binary.op,
+                           "Operands must be two numbers or two strings.");
+
   case TokenType::STAR:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) * std::get<double>(right);
+
   case TokenType::SLASH:
     checkNumberOperands(binary.op, left, right);
     return std::get<double>(left) / std::get<double>(right);
+
   default:
     break;
   }
@@ -101,7 +111,7 @@ void Interpreter::interpret(Expr expression) {
   try {
     LiteralObject value = evaluate(expression);
     std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
-  } catch (const RuntimeError &error) {
+  } catch (RuntimeError *error) {
     errorReporter.runtimeError(error);
   }
 }
