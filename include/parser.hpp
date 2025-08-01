@@ -1,36 +1,36 @@
 #include "expr.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
+#include <memory>
 #include <vector>
 
 class ParseError : public std::exception {};
 
 class Parser {
 private:
-  std::vector<Token> tokens;
+  std::vector<std::shared_ptr<Token>> tokens;
   int current = 0;
 
   bool match(std::vector<TokenType> types);
   bool check(TokenType type);
-  Token advance();
+  std::shared_ptr<Token> advance();
   bool isAtEnd();
-  Token peek();
-  Token previous();
+  std::shared_ptr<Token> peek();
+  std::shared_ptr<Token> previous();
 
-  Expr expression();
-  Expr equality();
-  Expr comparison();
-  Expr term();
-  Expr factor();
-  Expr unary();
-  Expr primary();
+  std::unique_ptr<Expr> expression();
+  std::unique_ptr<Expr> equality();
+  std::unique_ptr<Expr> comparison();
+  std::unique_ptr<Expr> term();
+  std::unique_ptr<Expr> factor();
+  std::unique_ptr<Expr> unary();
+  std::unique_ptr<Expr> primary();
 
-  Token consume(TokenType type, std::string message);
+  std::shared_ptr<Token> consume(TokenType type, std::string message);
   ParseError error(Token token, std::string message);
   void synchronize();
 
-  Expr parse();
-
 public:
-  Parser(std::vector<Token> tokens);
+  Parser(std::vector<std::shared_ptr<Token>> tokens);
+  std::unique_ptr<Expr> parse();
 };

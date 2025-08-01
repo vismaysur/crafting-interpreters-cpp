@@ -1,12 +1,17 @@
 #include "error_reporter.hpp"
+#include "expr.hpp"
+#include "interpreter.hpp"
+#include "parser.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 ErrorReporter errorReporter{};
+Interpreter interpreter{};
 
 std::string readFile(std::string fileName) {
   std::ifstream file(fileName);
@@ -36,11 +41,16 @@ std::string readFile(std::string fileName) {
 }
 
 void run(std::string source) {
-  Scanner *scanner = new Scanner(source);
-  std::vector<Token *> tokens = scanner->scanTokens();
+  std::shared_ptr<Scanner> scanner = std::make_shared<Scanner>(source);
 
-  for (Token *token : tokens)
-    std::cout << token->toString() << "\n";
+  std::vector<std::shared_ptr<Token>> tokens = scanner->scanTokens();
+
+  std::shared_ptr<Parser> parser = std::make_shared<Parser>(tokens);
+
+  std::unique_ptr<Expr> expr = parser->parse();
+
+  if (expr)
+    interpreter.interpret(*expr);
 }
 
 void runFile(std::string fileName) {
@@ -48,7 +58,7 @@ void runFile(std::string fileName) {
 
   run(fileContent);
 
-  if (errorReporter.hadError)
+  if (errorReporter.hadError || errorReporter.hadRuntimeError)
     std::exit(EXIT_FAILURE);
 }
 

@@ -11,22 +11,36 @@ Token::Token(TokenType type, std::string lexeme, LiteralObject literal,
   this->line = line;
 }
 
-struct LiteralVisitor {
-  std::string operator()(std::monostate) const { return "nil"; }
+std::string StringifyLiteralVisitor::operator()(std::monostate) const {
+  return "nil";
+}
 
-  std::string operator()(std::string str) const { return str; }
+std::string StringifyLiteralVisitor::operator()(std::string str) const {
+  return str;
+}
 
-  std::string operator()(double num) const { return std::to_string(num); }
+std::string StringifyLiteralVisitor::operator()(double num) const {
+  return std::to_string(num);
+}
 
-  std::string operator()(bool val) const { return std::to_string(val); }
-};
+std::string StringifyLiteralVisitor::operator()(bool val) const {
+  return std::to_string(val);
+}
+
+bool TruthyLiteralVisitor::operator()(std::monostate) const { return false; }
+
+bool TruthyLiteralVisitor::operator()(std::string str) const { return true; }
+
+bool TruthyLiteralVisitor::operator()(double num) const { return true; }
+
+bool TruthyLiteralVisitor::operator()(bool val) const { return val; }
 
 std::string Token::toString() {
   std::ostringstream oss{};
 
   oss << std::setw(10) << std::to_string(static_cast<int>(type));
   oss << std::setw(10) << lexeme;
-  oss << std::setw(10) << std::visit(LiteralVisitor{}, literal);
+  oss << std::setw(10) << std::visit(StringifyLiteralVisitor{}, literal);
   oss << std::setw(10) << line;
 
   return oss.str();

@@ -9,7 +9,7 @@ struct Grouping;
 struct Literal;
 struct Unary;
 
-using Expr = std::variant<Binary, Grouping, Literal, Unary, std::monostate>;
+using Expr = std::variant<Binary, Grouping, Literal, Unary>;
 
 struct Binary {
   std::shared_ptr<Expr> left;

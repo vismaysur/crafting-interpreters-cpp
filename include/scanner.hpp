@@ -2,13 +2,14 @@
 
 #include "error_reporter.hpp"
 #include "token.hpp"
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
 class Scanner {
 private:
   std::string source;
-  std::vector<Token *> tokens{};
+  std::vector<std::shared_ptr<Token>> tokens{};
 
   std::unordered_map<std::string, TokenType> keywords{
       {"and", TokenType::AND},       {"class", TokenType::CLASS},
@@ -55,5 +56,5 @@ private:
 public:
   Scanner(std::string source);
 
-  std::vector<Token *> scanTokens();
+  std::vector<std::shared_ptr<Token>> scanTokens();
 };

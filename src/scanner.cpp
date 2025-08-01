@@ -1,19 +1,24 @@
 #include "scanner.hpp"
 #include "error_reporter.hpp"
 #include "token_type.hpp"
+#include <memory>
 #include <variant>
 
 extern ErrorReporter errorReporter;
 
 Scanner::Scanner(std::string source) { this->source = source; }
 
-std::vector<Token *> Scanner::scanTokens() {
+std::vector<std::shared_ptr<Token>> Scanner::scanTokens() {
   while (!isAtEnd()) {
     start = current;
     scanToken();
   }
 
-  tokens.push_back(new Token(TokenType::_EOF, "", std::monostate{}, line));
+  std::shared_ptr<Token> lastToken = std::shared_ptr<Token>(
+      new Token(TokenType::_EOF, "", std::monostate{}, line));
+
+  tokens.push_back(lastToken);
+
   return tokens;
 }
 
@@ -133,7 +138,10 @@ void Scanner::addToken(TokenType type) { addToken(type, std::monostate{}); }
 void Scanner::addToken(TokenType type, LiteralObject literal) {
   std::string text = source.substr(start, current - start);
 
-  tokens.push_back(new Token(type, text, literal, line));
+  std::shared_ptr<Token> token =
+      std::shared_ptr<Token>(new Token(type, text, literal, line));
+
+  tokens.push_back(token);
 }
 
 void Scanner::consumeString() {
