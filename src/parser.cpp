@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "error_reporter.hpp"
+#include "stmt.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
 #include <algorithm>
@@ -177,10 +178,43 @@ void Parser::synchronize() {
   }
 }
 
-std::unique_ptr<Expr> Parser::parse() {
+std::unique_ptr<Stmt> Parser::printStatement() {
+  std::unique_ptr<Expr> expr = expression();
+
+  consume(TokenType::SEMICOLON, "Expected ';' after print statement.");
+
+  Print print(std::move(expr));
+
+  return std::make_unique<Stmt>(print);
+}
+
+std::unique_ptr<Stmt> Parser::expressionStatement() {
+  std::unique_ptr<Expr> expr = expression();
+
+  consume(TokenType::SEMICOLON, "Expected ';' after expression.");
+
+  Expression exprStmt(std::move(expr));
+
+  return std::make_unique<Stmt>(exprStmt);
+}
+
+std::unique_ptr<Stmt> Parser::statement() {
+  if (match({TokenType::PRINT}))
+    return printStatement();
+
+  return expressionStatement();
+}
+
+std::vector<std::unique_ptr<Stmt>> Parser::parse() {
   try {
-    return expression();
+    std::vector<std::unique_ptr<Stmt>> statements{};
+
+    while (!isAtEnd()) {
+      statements.push_back(statement());
+    }
+
+    return statements;
   } catch (const ParseError &error) {
-    return nullptr;
+    return {};
   }
 }

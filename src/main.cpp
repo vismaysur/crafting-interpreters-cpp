@@ -11,7 +11,7 @@
 #include <memory>
 
 ErrorReporter errorReporter{};
-Interpreter interpreter{};
+StatementInterpreter interpreter{};
 
 std::string readFile(std::string fileName) {
   std::ifstream file(fileName);
@@ -45,12 +45,18 @@ void run(std::string source) {
 
   std::vector<std::shared_ptr<Token>> tokens = scanner->scanTokens();
 
+  if (errorReporter.hadError)
+    return;
+
   std::shared_ptr<Parser> parser = std::make_shared<Parser>(tokens);
 
-  std::unique_ptr<Expr> expr = parser->parse();
+  std::vector<std::unique_ptr<Stmt>> stmts = std::move(parser->parse());
 
-  if (expr)
-    interpreter.interpret(*expr);
+  if (errorReporter.hadError)
+    return;
+
+  if (!stmts.empty())
+    interpreter.interpret(stmts);
 }
 
 void runFile(std::string fileName) {

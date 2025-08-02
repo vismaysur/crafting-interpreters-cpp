@@ -70,6 +70,12 @@ def main():
         ],
     )
 
+    defineAst(
+        output_dir,
+        "Stmt",
+        ["Expression= std::shared_ptr<Expr> expr", "Print= std::shared_ptr<Expr> expr"],
+    )
+
 
 if __name__ == "__main__":
     main()

@@ -2,6 +2,7 @@
 #include "error_reporter.hpp"
 #include "expr.hpp"
 #include "runtime_error.hpp"
+#include "stmt.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
 #include <exception>
@@ -10,7 +11,9 @@
 
 extern ErrorReporter errorReporter;
 
-LiteralObject evaluate(Expr expr) { return std::visit(Interpreter{}, expr); }
+LiteralObject evaluate(Expr expr) {
+  return std::visit(ExpressionInterpreter{}, expr);
+}
 
 void checkNumberOperand(Token op, LiteralObject obj) {
   if (std::holds_alternative<double>(obj))
@@ -25,15 +28,15 @@ void checkNumberOperands(Token op, LiteralObject obj1, LiteralObject obj2) {
   throw new RuntimeError(op, "Operands must be numbers.");
 }
 
-LiteralObject Interpreter::operator()(Literal literal) const {
+LiteralObject ExpressionInterpreter::operator()(Literal literal) const {
   return literal.value;
 }
 
-LiteralObject Interpreter::operator()(Grouping grouping) const {
+LiteralObject ExpressionInterpreter::operator()(Grouping grouping) const {
   return evaluate(*grouping.expression);
 }
 
-LiteralObject Interpreter::operator()(Unary unary) const {
+LiteralObject ExpressionInterpreter::operator()(Unary unary) const {
   LiteralObject right = evaluate(*unary.right);
 
   switch (unary.op.type) {
@@ -49,7 +52,7 @@ LiteralObject Interpreter::operator()(Unary unary) const {
   return std::monostate{};
 }
 
-LiteralObject Interpreter::operator()(Binary binary) const {
+LiteralObject ExpressionInterpreter::operator()(Binary binary) const {
   LiteralObject left = evaluate(*binary.left);
   LiteralObject right = evaluate(*binary.right);
 
@@ -107,10 +110,21 @@ LiteralObject Interpreter::operator()(Binary binary) const {
   return std::monostate{};
 }
 
-void Interpreter::interpret(Expr expression) {
+void StatementInterpreter::operator()(Print stmt) const {
+  LiteralObject value = evaluate(stmt.expr);
+  std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
+}
+
+void StatementInterpreter::operator()(Expression stmt) const {
+  evaluate(stmt.expr);
+}
+
+void StatementInterpreter::interpret(
+    std::vector<std::unique_ptr<Stmt>> &stmts) {
   try {
-    LiteralObject value = evaluate(expression);
-    std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
+    for (std::unique_ptr<Stmt> &stmt : stmts) {
+      std::visit(StatementInterpreter{}, *stmt);
+    }
   } catch (RuntimeError *error) {
     errorReporter.runtimeError(error);
   }

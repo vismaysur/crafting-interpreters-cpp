@@ -1,4 +1,7 @@
+#pragma once
+
 #include "expr.hpp"
+#include "stmt.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
 #include <memory>
@@ -26,11 +29,15 @@ private:
   std::unique_ptr<Expr> unary();
   std::unique_ptr<Expr> primary();
 
+  std::unique_ptr<Stmt> printStatement();
+  std::unique_ptr<Stmt> expressionStatement();
+  std::unique_ptr<Stmt> statement();
+
   std::shared_ptr<Token> consume(TokenType type, std::string message);
   ParseError error(Token token, std::string message);
   void synchronize();
 
 public:
   Parser(std::vector<std::shared_ptr<Token>> tokens);
-  std::unique_ptr<Expr> parse();
+  std::vector<std::unique_ptr<Stmt>> parse();
 };

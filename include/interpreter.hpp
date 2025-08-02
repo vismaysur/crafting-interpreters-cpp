@@ -1,9 +1,11 @@
 #pragma once
 
 #include "expr.hpp"
+#include "stmt.hpp"
 #include "token.hpp"
+#include <vector>
 
-struct Interpreter {
+struct ExpressionInterpreter {
   LiteralObject operator()(Unary unary) const;
 
   LiteralObject operator()(Binary binary) const;
@@ -11,6 +13,12 @@ struct Interpreter {
   LiteralObject operator()(Grouping grouping) const;
 
   LiteralObject operator()(Literal literal) const;
+};
 
-  void interpret(Expr expression);
+struct StatementInterpreter {
+  void operator()(Print stmt) const;
+
+  void operator()(Expression stmt) const;
+
+  void interpret(std::vector<std::unique_ptr<Stmt>> &stmts);
 };
