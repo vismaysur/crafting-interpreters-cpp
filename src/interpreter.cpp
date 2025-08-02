@@ -24,10 +24,6 @@ void checkNumberOperands(Token op, LiteralObject obj1, LiteralObject obj2) {
   throw new RuntimeError(op, "Operands must be numbers.");
 }
 
-LiteralObject Interpreter::evaluate(Expr expr) const {
-  return std::visit(*this, expr);
-}
-
 LiteralObject Interpreter::operator()(Assign assign) const {
   LiteralObject value = evaluate(assign.value);
   environment->assign(assign.name, value);
@@ -120,6 +116,11 @@ LiteralObject Interpreter::operator()(Variable expr) const {
   return environment->get(expr.name);
 }
 
+void Interpreter::operator()(Block stmt) {
+  executeBlock(stmt.statements,
+               std::make_shared<Environment>(Environment(this->environment)));
+}
+
 void Interpreter::operator()(Print stmt) const {
   LiteralObject value = evaluate(stmt.expr);
   std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
@@ -143,5 +144,26 @@ void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {
     }
   } catch (RuntimeError *error) {
     errorReporter.runtimeError(error);
+  }
+}
+
+LiteralObject Interpreter::evaluate(Expr expr) const {
+  return std::visit(*this, expr);
+}
+
+void Interpreter::executeBlock(std::vector<std::shared_ptr<Stmt>> statements,
+                               std::shared_ptr<Environment> environment) {
+  std::shared_ptr<Environment> previous = this->environment;
+
+  try {
+    this->environment = environment;
+
+    for (std::shared_ptr<Stmt> stmt : statements) {
+      std::visit(*this, *stmt);
+    }
+    this->environment = previous;
+  } catch (RuntimeError *error) {
+    this->environment = previous;
+    throw error;
   }
 }

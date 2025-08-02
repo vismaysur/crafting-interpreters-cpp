@@ -19,6 +19,8 @@ struct Interpreter {
 
   LiteralObject operator()(Variable variable) const;
 
+  void operator()(Block stmt);
+
   void operator()(Print stmt) const;
 
   void operator()(Expression stmt) const;
@@ -29,6 +31,9 @@ struct Interpreter {
 
   LiteralObject evaluate(Expr expr) const;
 
+  void executeBlock(std::vector<std::shared_ptr<Stmt>> statements,
+                    std::shared_ptr<Environment> environment);
+
 private:
-  std::unique_ptr<Environment> environment = std::make_unique<Environment>();
+  std::shared_ptr<Environment> environment = std::make_shared<Environment>();
 };
