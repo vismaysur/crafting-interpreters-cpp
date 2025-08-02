@@ -5,7 +5,9 @@
 #include "token_type.hpp"
 #include <algorithm>
 #include <exception>
+#include <iostream>
 #include <memory>
+#include <variant>
 
 extern ErrorReporter errorReporter;
 
@@ -42,7 +44,26 @@ std::shared_ptr<Token> Parser::peek() { return tokens[current]; }
 
 std::shared_ptr<Token> Parser::previous() { return tokens[current - 1]; }
 
-std::unique_ptr<Expr> Parser::expression() { return equality(); }
+std::unique_ptr<Expr> Parser::expression() { return assignment(); }
+
+std::unique_ptr<Expr> Parser::assignment() {
+  std::unique_ptr<Expr> expr = equality();
+
+  if (match({TokenType::EQUAL})) {
+    std::shared_ptr<Token> equals = previous();
+    std::unique_ptr<Expr> value = assignment();
+
+    if (std::holds_alternative<Variable>(*expr)) {
+      Variable variable = std::get<Variable>(*expr);
+      Assign assign(variable.name, std::move(value));
+      return std::make_unique<Expr>(assign);
+    }
+
+    error(*equals, "Invalid assignment target.");
+  }
+
+  return expr;
+}
 
 std::unique_ptr<Expr> Parser::equality() {
   std::unique_ptr<Expr> expr = comparison();

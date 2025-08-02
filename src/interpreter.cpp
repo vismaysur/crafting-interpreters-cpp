@@ -28,6 +28,12 @@ LiteralObject Interpreter::evaluate(Expr expr) const {
   return std::visit(*this, expr);
 }
 
+LiteralObject Interpreter::operator()(Assign assign) const {
+  LiteralObject value = evaluate(assign.value);
+  environment->assign(assign.name, value);
+  return value;
+}
+
 LiteralObject Interpreter::operator()(Literal literal) const {
   return literal.value;
 }

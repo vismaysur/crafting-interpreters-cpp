@@ -8,5 +8,6 @@ private:
 
 public:
   void define(std::string name, LiteralObject value);
+  void assign(Token name, LiteralObject value);
   LiteralObject get(Token name);
 };

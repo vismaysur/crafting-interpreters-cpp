@@ -7,6 +7,8 @@
 #include <vector>
 
 struct Interpreter {
+  LiteralObject operator()(Assign assign) const;
+
   LiteralObject operator()(Unary unary) const;
 
   LiteralObject operator()(Binary binary) const;
