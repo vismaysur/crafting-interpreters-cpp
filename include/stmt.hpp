@@ -8,10 +8,11 @@
 
 struct Block;
 struct Expression;
+struct If;
 struct Print;
 struct Var;
 
-using Stmt = std::variant<Block, Expression, Print, Var>;
+using Stmt = std::variant<Block, Expression, If, Print, Var>;
 
 struct Block {
   std::vector<std::shared_ptr<Stmt>> statements;
@@ -24,6 +25,16 @@ struct Expression {
   std::shared_ptr<Expr> expr;
 
   Expression(std::shared_ptr<Expr> expr) : expr(expr) {}
+};
+
+struct If {
+  std::shared_ptr<Expr> condition;
+  std::shared_ptr<Stmt> thenBranch;
+  std::shared_ptr<Stmt> elseBranch;
+
+  If(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch,
+     std::shared_ptr<Stmt> elseBranch)
+      : condition(condition), thenBranch(thenBranch), elseBranch(elseBranch) {}
 };
 
 struct Print {

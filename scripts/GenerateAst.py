@@ -78,6 +78,7 @@ def main():
         [
             "Block= std::vector<std::shared_ptr<Stmt>> statements",
             "Expression= std::shared_ptr<Expr> expr",
+            "If= std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
             "Print= std::shared_ptr<Expr> expr",
             "Var= Token name, std::shared_ptr<Expr> initializer",
         ],

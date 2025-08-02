@@ -126,6 +126,18 @@ void Interpreter::operator()(Print stmt) const {
   std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
 }
 
+void Interpreter::operator()(If stmt) {
+  bool conditionTrue =
+      std::visit(TruthyLiteralVisitor{}, evaluate(*stmt.condition));
+
+  if (conditionTrue) {
+    std::visit(*this, *(stmt.thenBranch));
+  } else {
+    if (stmt.elseBranch)
+      std::visit(*this, *(stmt.elseBranch));
+  }
+}
+
 void Interpreter::operator()(Expression stmt) const { evaluate(stmt.expr); }
 
 void Interpreter::operator()(Var stmt) const {

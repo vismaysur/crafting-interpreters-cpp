@@ -23,6 +23,8 @@ struct Interpreter {
 
   void operator()(Print stmt) const;
 
+  void operator()(If stmt);
+
   void operator()(Expression stmt) const;
 
   void operator()(Var stmt) const;
