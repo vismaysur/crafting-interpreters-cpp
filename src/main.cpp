@@ -11,7 +11,7 @@
 #include <memory>
 
 ErrorReporter errorReporter{};
-StatementInterpreter interpreter{};
+Interpreter interpreter{};
 
 std::string readFile(std::string fileName) {
   std::ifstream file(fileName);

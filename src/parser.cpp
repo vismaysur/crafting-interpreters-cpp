@@ -141,6 +141,12 @@ std::unique_ptr<Expr> Parser::primary() {
     return std::make_unique<Expr>(std::move(grouping));
   }
 
+  if (match({TokenType::IDENTIFIER})) {
+    std::shared_ptr<Token> name = previous();
+    Variable variable(*name);
+    return std::make_unique<Expr>(std::move(variable));
+  }
+
   throw error(*peek(), "Expected an expression.");
 }
 
@@ -180,22 +186,16 @@ void Parser::synchronize() {
 
 std::unique_ptr<Stmt> Parser::printStatement() {
   std::unique_ptr<Expr> expr = expression();
-
   consume(TokenType::SEMICOLON, "Expected ';' after print statement.");
-
   Print print(std::move(expr));
-
   return std::make_unique<Stmt>(print);
 }
 
 std::unique_ptr<Stmt> Parser::expressionStatement() {
   std::unique_ptr<Expr> expr = expression();
-
   consume(TokenType::SEMICOLON, "Expected ';' after expression.");
-
-  Expression exprStmt(std::move(expr));
-
-  return std::make_unique<Stmt>(exprStmt);
+  Expression expression(std::move(expr));
+  return std::make_unique<Stmt>(expression);
 }
 
 std::unique_ptr<Stmt> Parser::statement() {
@@ -205,16 +205,43 @@ std::unique_ptr<Stmt> Parser::statement() {
   return expressionStatement();
 }
 
-std::vector<std::unique_ptr<Stmt>> Parser::parse() {
-  try {
-    std::vector<std::unique_ptr<Stmt>> statements{};
+std::unique_ptr<Stmt> Parser::varDeclaration() {
+  std::shared_ptr<Token> token =
+      consume(TokenType::IDENTIFIER, "Expected variable name.");
 
-    while (!isAtEnd()) {
-      statements.push_back(statement());
+  std::unique_ptr<Expr> initializer = nullptr;
+  if (match({TokenType::EQUAL})) {
+    initializer = expression();
+  }
+
+  consume(TokenType::SEMICOLON, "Expected ';' after variable declaration.");
+
+  Var var(*token, std::move(initializer));
+
+  return std::make_unique<Stmt>(var);
+}
+
+std::unique_ptr<Stmt> Parser::declaration() {
+  try {
+    if (match({TokenType::VAR})) {
+      return varDeclaration();
     }
 
-    return statements;
+    return statement();
   } catch (const ParseError &error) {
-    return {};
+    synchronize();
+    return nullptr;
   }
+}
+
+std::vector<std::unique_ptr<Stmt>> Parser::parse() {
+  std::vector<std::unique_ptr<Stmt>> statements{};
+
+  while (!isAtEnd()) {
+    std::unique_ptr<Stmt> stmt = declaration();
+    if (stmt)
+      statements.push_back(std::move(stmt));
+  }
+
+  return statements;
 }

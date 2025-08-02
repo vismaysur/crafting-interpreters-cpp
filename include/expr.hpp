@@ -8,8 +8,9 @@ struct Binary;
 struct Grouping;
 struct Literal;
 struct Unary;
+struct Variable;
 
-using Expr = std::variant<Binary, Grouping, Literal, Unary>;
+using Expr = std::variant<Binary, Grouping, Literal, Unary, Variable>;
 
 struct Binary {
 	std::shared_ptr<Expr> left;
@@ -36,5 +37,11 @@ struct Unary {
 	std::shared_ptr<Expr> right;
 
 	Unary(Token op, std::shared_ptr<Expr> right) : op(op), right(right) {}
+};
+
+struct Variable {
+	Token name;
+
+	Variable(Token name) : name(name) {}
 };
 

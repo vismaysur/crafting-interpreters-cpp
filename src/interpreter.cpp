@@ -11,10 +11,6 @@
 
 extern ErrorReporter errorReporter;
 
-LiteralObject evaluate(Expr expr) {
-  return std::visit(ExpressionInterpreter{}, expr);
-}
-
 void checkNumberOperand(Token op, LiteralObject obj) {
   if (std::holds_alternative<double>(obj))
     return;
@@ -28,15 +24,19 @@ void checkNumberOperands(Token op, LiteralObject obj1, LiteralObject obj2) {
   throw new RuntimeError(op, "Operands must be numbers.");
 }
 
-LiteralObject ExpressionInterpreter::operator()(Literal literal) const {
+LiteralObject Interpreter::evaluate(Expr expr) const {
+  return std::visit(*this, expr);
+}
+
+LiteralObject Interpreter::operator()(Literal literal) const {
   return literal.value;
 }
 
-LiteralObject ExpressionInterpreter::operator()(Grouping grouping) const {
+LiteralObject Interpreter::operator()(Grouping grouping) const {
   return evaluate(*grouping.expression);
 }
 
-LiteralObject ExpressionInterpreter::operator()(Unary unary) const {
+LiteralObject Interpreter::operator()(Unary unary) const {
   LiteralObject right = evaluate(*unary.right);
 
   switch (unary.op.type) {
@@ -52,12 +52,12 @@ LiteralObject ExpressionInterpreter::operator()(Unary unary) const {
   return std::monostate{};
 }
 
-LiteralObject ExpressionInterpreter::operator()(Binary binary) const {
+LiteralObject Interpreter::operator()(Binary binary) const {
   LiteralObject left = evaluate(*binary.left);
   LiteralObject right = evaluate(*binary.right);
 
   switch (binary.op.type) {
-  case TokenType::EQUAL:
+  case TokenType::EQUAL_EQUAL:
     return left == right;
 
   case TokenType::BANG_EQUAL:
@@ -110,20 +110,30 @@ LiteralObject ExpressionInterpreter::operator()(Binary binary) const {
   return std::monostate{};
 }
 
-void StatementInterpreter::operator()(Print stmt) const {
+LiteralObject Interpreter::operator()(Variable expr) const {
+  return environment->get(expr.name);
+}
+
+void Interpreter::operator()(Print stmt) const {
   LiteralObject value = evaluate(stmt.expr);
   std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
 }
 
-void StatementInterpreter::operator()(Expression stmt) const {
-  evaluate(stmt.expr);
+void Interpreter::operator()(Expression stmt) const { evaluate(stmt.expr); }
+
+void Interpreter::operator()(Var stmt) const {
+  LiteralObject value = std::monostate{};
+  if (stmt.initializer != nullptr) {
+    value = evaluate(stmt.initializer);
+  }
+
+  environment->define(stmt.name.lexeme, value);
 }
 
-void StatementInterpreter::interpret(
-    std::vector<std::unique_ptr<Stmt>> &stmts) {
+void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {
   try {
     for (std::unique_ptr<Stmt> &stmt : stmts) {
-      std::visit(StatementInterpreter{}, *stmt);
+      std::visit(*this, *stmt);
     }
   } catch (RuntimeError *error) {
     errorReporter.runtimeError(error);

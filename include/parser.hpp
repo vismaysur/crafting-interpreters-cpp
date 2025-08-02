@@ -32,6 +32,8 @@ private:
   std::unique_ptr<Stmt> printStatement();
   std::unique_ptr<Stmt> expressionStatement();
   std::unique_ptr<Stmt> statement();
+  std::unique_ptr<Stmt> declaration();
+  std::unique_ptr<Stmt> varDeclaration();
 
   std::shared_ptr<Token> consume(TokenType type, std::string message);
   ParseError error(Token token, std::string message);

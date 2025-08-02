@@ -67,13 +67,18 @@ def main():
             "Grouping= std::shared_ptr<Expr> expression",
             "Literal= LiteralObject value",
             "Unary= Token op, std::shared_ptr<Expr> right",
+            "Variable= Token name",
         ],
     )
 
     defineAst(
         output_dir,
         "Stmt",
-        ["Expression= std::shared_ptr<Expr> expr", "Print= std::shared_ptr<Expr> expr"],
+        [
+            "Expression= std::shared_ptr<Expr> expr",
+            "Print= std::shared_ptr<Expr> expr",
+            "Var= Token name, std::shared_ptr<Expr> initializer",
+        ],
     )
 
 
