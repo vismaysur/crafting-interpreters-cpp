@@ -64,6 +64,7 @@ def main():
         "Expr",
         [
             "Assign= Token name, std::shared_ptr<Expr> value",
+            "Logical= std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right",
             "Binary= std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right",
             "Grouping= std::shared_ptr<Expr> expression",
             "Literal= LiteralObject value",
@@ -81,6 +82,7 @@ def main():
             "If= std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
             "Print= std::shared_ptr<Expr> expr",
             "Var= Token name, std::shared_ptr<Expr> initializer",
+            "While= std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body",
         ],
     )
 

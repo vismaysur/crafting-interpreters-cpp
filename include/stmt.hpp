@@ -11,8 +11,9 @@ struct Expression;
 struct If;
 struct Print;
 struct Var;
+struct While;
 
-using Stmt = std::variant<Block, Expression, If, Print, Var>;
+using Stmt = std::variant<Block, Expression, If, Print, Var, While>;
 
 struct Block {
   std::vector<std::shared_ptr<Stmt>> statements;
@@ -49,4 +50,12 @@ struct Var {
 
   Var(Token name, std::shared_ptr<Expr> initializer)
       : name(name), initializer(initializer) {}
+};
+
+struct While {
+  std::shared_ptr<Expr> condition;
+  std::shared_ptr<Stmt> body;
+
+  While(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+      : condition(condition), body(body) {}
 };

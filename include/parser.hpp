@@ -23,6 +23,8 @@ private:
 
   std::unique_ptr<Expr> expression();
   std::unique_ptr<Expr> assignment();
+  std::unique_ptr<Expr> logical_or();
+  std::unique_ptr<Expr> logical_and();
   std::unique_ptr<Expr> equality();
   std::unique_ptr<Expr> comparison();
   std::unique_ptr<Expr> term();
@@ -37,6 +39,8 @@ private:
   std::unique_ptr<Stmt> statement();
   std::unique_ptr<Stmt> declaration();
   std::unique_ptr<Stmt> varDeclaration();
+  std::unique_ptr<Stmt> whileStatement();
+  std::unique_ptr<Stmt> forStatement();
 
   std::shared_ptr<Token> consume(TokenType type, std::string message);
   ParseError error(Token token, std::string message);

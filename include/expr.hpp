@@ -5,19 +5,28 @@
 #include <memory>
 
 struct Assign;
+struct Logical;
 struct Binary;
 struct Grouping;
 struct Literal;
 struct Unary;
 struct Variable;
 
-using Expr = std::variant<Assign, Binary, Grouping, Literal, Unary, Variable>;
+using Expr = std::variant<Assign, Logical, Binary, Grouping, Literal, Unary, Variable>;
 
 struct Assign {
 	Token name;
 	std::shared_ptr<Expr> value;
 
 	Assign(Token name, std::shared_ptr<Expr> value) : name(name), value(value) {}
+};
+
+struct Logical {
+	std::shared_ptr<Expr> left;
+	Token op;
+	std::shared_ptr<Expr> right;
+
+	Logical(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(left), op(op), right(right) {}
 };
 
 struct Binary {

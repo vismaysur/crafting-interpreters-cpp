@@ -17,6 +17,8 @@ struct Interpreter {
 
   LiteralObject operator()(Literal literal) const;
 
+  LiteralObject operator()(Logical logical) const;
+
   LiteralObject operator()(Variable variable) const;
 
   void operator()(Block stmt);
@@ -28,6 +30,8 @@ struct Interpreter {
   void operator()(Expression stmt) const;
 
   void operator()(Var stmt) const;
+
+  void operator()(While stmt);
 
   void interpret(std::vector<std::unique_ptr<Stmt>> &stmts);
 

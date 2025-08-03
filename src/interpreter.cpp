@@ -112,6 +112,20 @@ LiteralObject Interpreter::operator()(Binary binary) const {
   return std::monostate{};
 }
 
+LiteralObject Interpreter::operator()(Logical expr) const {
+  LiteralObject left = evaluate(expr.left);
+
+  if (expr.op.type == TokenType::OR) {
+    if (std::visit(TruthyLiteralVisitor{}, left))
+      return left;
+  } else {
+    if (!std::visit(TruthyLiteralVisitor{}, left))
+      return left;
+  }
+
+  return evaluate(expr.right);
+}
+
 LiteralObject Interpreter::operator()(Variable expr) const {
   return environment->get(expr.name);
 }
@@ -147,6 +161,12 @@ void Interpreter::operator()(Var stmt) const {
   }
 
   environment->define(stmt.name.lexeme, value);
+}
+
+void Interpreter::operator()(While stmt) {
+  while (std::visit(TruthyLiteralVisitor{}, evaluate(*stmt.condition))) {
+    std::visit(*this, *(stmt.body));
+  }
 }
 
 void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {
