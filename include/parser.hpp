@@ -31,7 +31,10 @@ private:
   std::unique_ptr<Expr> factor();
   std::unique_ptr<Expr> unary();
   std::unique_ptr<Expr> primary();
+  std::unique_ptr<Expr> call();
+  std::unique_ptr<Expr> finishCall(std::shared_ptr<Expr> callee);
 
+  std::unique_ptr<Stmt> function(std::string kind);
   std::unique_ptr<Stmt> block();
   std::unique_ptr<Stmt> printStatement();
   std::unique_ptr<Stmt> ifStatement();
@@ -41,6 +44,7 @@ private:
   std::unique_ptr<Stmt> varDeclaration();
   std::unique_ptr<Stmt> whileStatement();
   std::unique_ptr<Stmt> forStatement();
+  std::unique_ptr<Stmt> returnStatement();
 
   std::shared_ptr<Token> consume(TokenType type, std::string message);
   ParseError error(Token token, std::string message);

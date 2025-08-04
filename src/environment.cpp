@@ -1,4 +1,5 @@
 #include "environment.hpp"
+#include "lox_callable.hpp"
 #include "runtime_error.hpp"
 #include "token.hpp"
 #include <iostream>

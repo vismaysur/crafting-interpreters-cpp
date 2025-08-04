@@ -1,3 +1,5 @@
+#pragma once
+
 #include "expr.hpp"
 #include "token.hpp"
 #include <memory>

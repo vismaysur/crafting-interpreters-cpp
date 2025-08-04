@@ -1,4 +1,5 @@
 #include "error_reporter.hpp"
+#include "lox_callable.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
 #include <iostream>

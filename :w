@@ -1,6 +1,5 @@
 #include "parser.hpp"
 #include "error_reporter.hpp"
-#include "lox_callable.hpp"
 #include "stmt.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
@@ -176,13 +175,10 @@ std::unique_ptr<Expr> Parser::call() {
 }
 
 std::unique_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
-  std::vector<std::shared_ptr<Expr>> args{};
+  std::vector<std::unique_ptr<Expr>> args{};
 
   if (!check(TokenType::RIGHT_PAREN)) {
     do {
-      if (args.size() >= 255) {
-        error(*peek(), "Can't have more than 255 arguments.");
-      }
       args.push_back(expression());
     } while (match({TokenType::COMMA}));
   }
@@ -190,9 +186,7 @@ std::unique_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
   std::shared_ptr<Token> paren =
       consume(TokenType::RIGHT_PAREN, "Expected ')' after arguments.");
 
-  Call call(std::move(callee), *paren, args);
-
-  return std::make_unique<Expr>(call);
+  Call call(std::move(callee), std::move(paren), std::move(args));
 }
 
 std::unique_ptr<Expr> Parser::primary() {
@@ -376,25 +370,7 @@ std::unique_ptr<Stmt> Parser::expressionStatement() {
   return std::make_unique<Stmt>(expression);
 }
 
-std::unique_ptr<Stmt> Parser::returnStatement() {
-  std::shared_ptr<Token> keyword = previous();
-
-  std::shared_ptr<Expr> value = nullptr;
-  if (!check(TokenType::SEMICOLON)) {
-    value = expression();
-  }
-
-  consume(TokenType::SEMICOLON, "Expected ';' after return value");
-
-  Return retStmt(*keyword, std::move(value));
-
-  return std::make_unique<Stmt>(retStmt);
-}
-
 std::unique_ptr<Stmt> Parser::statement() {
-  if (match({TokenType::RETURN}))
-    return returnStatement();
-
   if (match({TokenType::IF}))
     return ifStatement();
 
@@ -430,42 +406,8 @@ std::unique_ptr<Stmt> Parser::varDeclaration() {
   return std::make_unique<Stmt>(var);
 }
 
-std::unique_ptr<Stmt> Parser::function(std::string kind) {
-  std::shared_ptr<Token> token =
-      consume(TokenType::IDENTIFIER, "Expected " + kind + " name.");
-
-  consume(TokenType::LEFT_PAREN, "Expected '(' after " + kind + " name.");
-
-  std::vector<Token> parameters{};
-
-  if (!check(TokenType::RIGHT_PAREN)) {
-    do {
-      if (parameters.size() >= 255) {
-        error(*peek(), "Can't have more than 255 parameters.");
-      }
-
-      parameters.push_back(
-          *consume(TokenType::IDENTIFIER, "Expected parameter name."));
-    } while (match({TokenType::COMMA}));
-  }
-
-  consume(TokenType::RIGHT_PAREN, "Expected ')' after parameters.");
-
-  consume(TokenType::LEFT_BRACE, "Expected '{' before " + kind + " body.");
-
-  Block blockStmt = std::get<Block>(*block());
-
-  Func func(*token, parameters, blockStmt.statements);
-
-  return std::make_unique<Stmt>(func);
-}
-
 std::unique_ptr<Stmt> Parser::declaration() {
   try {
-    if (match({TokenType::FUN})) {
-      return function("function");
-    }
-
     if (match({TokenType::VAR})) {
       return varDeclaration();
     }

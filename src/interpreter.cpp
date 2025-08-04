@@ -1,12 +1,15 @@
 #include "interpreter.hpp"
 #include "error_reporter.hpp"
 #include "expr.hpp"
+#include "func_return.hpp"
+#include "lox_callable.hpp"
 #include "runtime_error.hpp"
 #include "stmt.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
 #include <exception>
 #include <iostream>
+#include <memory>
 #include <variant>
 
 extern ErrorReporter errorReporter;
@@ -22,6 +25,12 @@ void checkNumberOperands(Token op, LiteralObject obj1, LiteralObject obj2) {
       std::holds_alternative<double>(obj2))
     return;
   throw new RuntimeError(op, "Operands must be numbers.");
+}
+
+Interpreter::Interpreter() {
+  std::shared_ptr<ClockFunc> clockFunc = std::make_shared<ClockFunc>();
+
+  globals->define("clock", clockFunc);
 }
 
 LiteralObject Interpreter::operator()(Assign assign) const {
@@ -112,6 +121,39 @@ LiteralObject Interpreter::operator()(Binary binary) const {
   return std::monostate{};
 }
 
+LiteralObject Interpreter::operator()(Call expr) const {
+  LiteralObject callee = evaluate(expr.callee);
+
+  std::vector<LiteralObject> args{};
+
+  for (std::shared_ptr<Expr> arg : expr.args) {
+    args.push_back(evaluate(*arg));
+  }
+
+  if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)) {
+    throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+  }
+
+  std::shared_ptr<LoxCallable> function =
+      std::get<std::shared_ptr<LoxCallable>>(callee);
+
+  if (args.size() != function->arity()) {
+    throw new RuntimeError(
+        expr.paren, "Expected " + std::to_string(function->arity()) +
+                        " args, got " + std::to_string(args.size()) + ".");
+  }
+
+  LiteralObject returnVal = std::monostate{};
+
+  try {
+    function->call(*this, args);
+  } catch (FuncReturn *retVal) {
+    return retVal->value;
+  }
+
+  return std::monostate{};
+}
+
 LiteralObject Interpreter::operator()(Logical expr) const {
   LiteralObject left = evaluate(expr.left);
 
@@ -138,6 +180,21 @@ void Interpreter::operator()(Block stmt) {
 void Interpreter::operator()(Print stmt) const {
   LiteralObject value = evaluate(stmt.expr);
   std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
+}
+
+void Interpreter::operator()(Func func) {
+  std::shared_ptr<Func> funcPtr =
+      std::make_shared<Func>(func.name, func.params, func.body);
+
+  std::shared_ptr<Environment> closure =
+      std::make_shared<Environment>(environment);
+
+  std::shared_ptr<LoxCallable> loxFunc =
+      std::make_shared<LoxFunc>(funcPtr, closure);
+
+  environment->define(func.name.lexeme, loxFunc);
+
+  // MEM LEAK :(
 }
 
 void Interpreter::operator()(If stmt) {
@@ -167,6 +224,16 @@ void Interpreter::operator()(While stmt) {
   while (std::visit(TruthyLiteralVisitor{}, evaluate(*stmt.condition))) {
     std::visit(*this, *(stmt.body));
   }
+}
+
+void Interpreter::operator()(Return stmt) {
+  LiteralObject value = std::monostate{};
+
+  if (stmt.value != nullptr) {
+    value = evaluate(*(stmt.value));
+  }
+
+  throw new FuncReturn(value);
 }
 
 void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {

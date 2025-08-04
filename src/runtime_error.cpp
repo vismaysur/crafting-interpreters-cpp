@@ -1,4 +1,5 @@
 #include "runtime_error.hpp"
+#include "lox_callable.hpp"
 #include <stdexcept>
 #include <string>
 

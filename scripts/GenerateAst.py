@@ -31,6 +31,7 @@ def defineAst(output_dir: str, base_name: str, types: Iterable[str]):
         f.write("#pragma once\n\n")
         f.write('#include "token.hpp"\n')
         f.write("#include <variant>\n")
+        f.write("#include <vector>\n")
         f.write("#include <memory>\n\n")
 
         # Forward declarations for node types
@@ -66,6 +67,7 @@ def main():
             "Assign= Token name, std::shared_ptr<Expr> value",
             "Logical= std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right",
             "Binary= std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right",
+            "Call= std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> args",
             "Grouping= std::shared_ptr<Expr> expression",
             "Literal= LiteralObject value",
             "Unary= Token op, std::shared_ptr<Expr> right",
@@ -79,8 +81,10 @@ def main():
         [
             "Block= std::vector<std::shared_ptr<Stmt>> statements",
             "Expression= std::shared_ptr<Expr> expr",
+            "Func= Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body",
             "If= std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
             "Print= std::shared_ptr<Expr> expr",
+            "Return= Token keyword, std::shared_ptr<Expr> value",
             "Var= Token name, std::shared_ptr<Expr> initializer",
             "While= std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body",
         ],

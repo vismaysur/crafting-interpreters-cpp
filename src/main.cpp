@@ -1,6 +1,7 @@
 #include "error_reporter.hpp"
 #include "expr.hpp"
 #include "interpreter.hpp"
+#include "lox_callable.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
 #include "token.hpp"

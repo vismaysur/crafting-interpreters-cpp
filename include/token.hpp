@@ -1,10 +1,14 @@
 #pragma once
 
 #include "token_type.hpp"
+#include <memory>
 #include <string>
 #include <variant>
 
-using LiteralObject = std::variant<std::monostate, std::string, double, bool>;
+class LoxCallable;
+
+using LiteralObject = std::variant<std::monostate, std::string, double, bool,
+                                   std::shared_ptr<LoxCallable>>;
 
 struct StringifyLiteralVisitor {
   std::string operator()(std::monostate) const;
@@ -14,6 +18,8 @@ struct StringifyLiteralVisitor {
   std::string operator()(double num) const;
 
   std::string operator()(bool val) const;
+
+  std::string operator()(std::shared_ptr<LoxCallable> callable) const;
 };
 
 struct TruthyLiteralVisitor {
@@ -24,6 +30,8 @@ struct TruthyLiteralVisitor {
   bool operator()(double num) const;
 
   bool operator()(bool val) const;
+
+  bool operator()(std::shared_ptr<LoxCallable> callable) const;
 };
 
 class Token {
@@ -35,5 +43,5 @@ public:
 
   Token(TokenType type, std::string lexeme, LiteralObject literal, int line);
 
-  std::string toString();
+  std::string toString() const;
 };

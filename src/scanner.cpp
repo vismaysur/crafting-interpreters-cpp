@@ -1,5 +1,6 @@
 #include "scanner.hpp"
 #include "error_reporter.hpp"
+#include "lox_callable.hpp"
 #include "token_type.hpp"
 #include <memory>
 #include <variant>
