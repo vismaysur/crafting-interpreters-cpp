@@ -33,21 +33,28 @@ Interpreter::Interpreter() {
   globals->define("clock", clockFunc);
 }
 
-LiteralObject Interpreter::operator()(Assign assign) const {
-  LiteralObject value = evaluate(assign.value);
-  environment->assign(assign.name, value);
+LiteralObject Interpreter::operator()(Assign &assign) {
+  LiteralObject value = evaluate(*assign.value);
+
+  if (assign.id.has_value() && locals.count(assign.id.value())) {
+    int distance = locals[assign.id.value()];
+    environment->assignAt(distance, assign.name, value);
+  } else {
+    globals->assign(assign.name, value);
+  }
+
   return value;
 }
 
-LiteralObject Interpreter::operator()(Literal literal) const {
+LiteralObject Interpreter::operator()(Literal &literal) {
   return literal.value;
 }
 
-LiteralObject Interpreter::operator()(Grouping grouping) const {
+LiteralObject Interpreter::operator()(Grouping &grouping) {
   return evaluate(*grouping.expression);
 }
 
-LiteralObject Interpreter::operator()(Unary unary) const {
+LiteralObject Interpreter::operator()(Unary &unary) {
   LiteralObject right = evaluate(*unary.right);
 
   switch (unary.op.type) {
@@ -63,7 +70,7 @@ LiteralObject Interpreter::operator()(Unary unary) const {
   return std::monostate{};
 }
 
-LiteralObject Interpreter::operator()(Binary binary) const {
+LiteralObject Interpreter::operator()(Binary &binary) {
   LiteralObject left = evaluate(*binary.left);
   LiteralObject right = evaluate(*binary.right);
 
@@ -121,8 +128,8 @@ LiteralObject Interpreter::operator()(Binary binary) const {
   return std::monostate{};
 }
 
-LiteralObject Interpreter::operator()(Call expr) const {
-  LiteralObject callee = evaluate(expr.callee);
+LiteralObject Interpreter::operator()(Call &expr) {
+  LiteralObject callee = evaluate(*expr.callee);
 
   std::vector<LiteralObject> args{};
 
@@ -143,8 +150,6 @@ LiteralObject Interpreter::operator()(Call expr) const {
                         " args, got " + std::to_string(args.size()) + ".");
   }
 
-  LiteralObject returnVal = std::monostate{};
-
   try {
     function->call(*this, args);
   } catch (FuncReturn *retVal) {
@@ -154,8 +159,8 @@ LiteralObject Interpreter::operator()(Call expr) const {
   return std::monostate{};
 }
 
-LiteralObject Interpreter::operator()(Logical expr) const {
-  LiteralObject left = evaluate(expr.left);
+LiteralObject Interpreter::operator()(Logical &expr) {
+  LiteralObject left = evaluate(*expr.left);
 
   if (expr.op.type == TokenType::OR) {
     if (std::visit(TruthyLiteralVisitor{}, left))
@@ -165,39 +170,46 @@ LiteralObject Interpreter::operator()(Logical expr) const {
       return left;
   }
 
-  return evaluate(expr.right);
+  return evaluate(*expr.right);
 }
 
-LiteralObject Interpreter::operator()(Variable expr) const {
-  return environment->get(expr.name);
+LiteralObject Interpreter::operator()(Variable &expr) {
+  return lookUpVariable(expr.name, expr);
 }
 
-void Interpreter::operator()(Block stmt) {
+LiteralObject Interpreter::lookUpVariable(Token name, Variable &expr) {
+  if (expr.id.has_value() && locals.count(expr.id.value())) {
+    int distance = locals[expr.id.value()];
+    LiteralObject res = environment->getAt(distance, name);
+    return res;
+  } else {
+    return globals->get(name);
+  }
+}
+
+void Interpreter::operator()(Block &stmt) {
   executeBlock(stmt.statements,
-               std::make_shared<Environment>(Environment(this->environment)));
+               std::make_shared<Environment>(this->environment));
 }
 
-void Interpreter::operator()(Print stmt) const {
-  LiteralObject value = evaluate(stmt.expr);
+void Interpreter::operator()(Print &stmt) {
+  LiteralObject value = evaluate(*stmt.expr);
   std::cout << std::visit(StringifyLiteralVisitor{}, value) << std::endl;
 }
 
-void Interpreter::operator()(Func func) {
+void Interpreter::operator()(Func &func) {
   std::shared_ptr<Func> funcPtr =
       std::make_shared<Func>(func.name, func.params, func.body);
 
-  std::shared_ptr<Environment> closure =
-      std::make_shared<Environment>(environment);
-
   std::shared_ptr<LoxCallable> loxFunc =
-      std::make_shared<LoxFunc>(funcPtr, closure);
+      std::make_shared<LoxFunc>(funcPtr, environment);
 
   environment->define(func.name.lexeme, loxFunc);
 
   // MEM LEAK :(
 }
 
-void Interpreter::operator()(If stmt) {
+void Interpreter::operator()(If &stmt) {
   bool conditionTrue =
       std::visit(TruthyLiteralVisitor{}, evaluate(*stmt.condition));
 
@@ -209,24 +221,24 @@ void Interpreter::operator()(If stmt) {
   }
 }
 
-void Interpreter::operator()(Expression stmt) const { evaluate(stmt.expr); }
+void Interpreter::operator()(Expression &stmt) { evaluate(*stmt.expr); }
 
-void Interpreter::operator()(Var stmt) const {
+void Interpreter::operator()(Var &stmt) {
   LiteralObject value = std::monostate{};
   if (stmt.initializer != nullptr) {
-    value = evaluate(stmt.initializer);
+    value = evaluate(*stmt.initializer);
   }
 
   environment->define(stmt.name.lexeme, value);
 }
 
-void Interpreter::operator()(While stmt) {
+void Interpreter::operator()(While &stmt) {
   while (std::visit(TruthyLiteralVisitor{}, evaluate(*stmt.condition))) {
     std::visit(*this, *(stmt.body));
   }
 }
 
-void Interpreter::operator()(Return stmt) {
+void Interpreter::operator()(Return &stmt) {
   LiteralObject value = std::monostate{};
 
   if (stmt.value != nullptr) {
@@ -236,9 +248,9 @@ void Interpreter::operator()(Return stmt) {
   throw new FuncReturn(value);
 }
 
-void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {
+void Interpreter::interpret(std::vector<std::shared_ptr<Stmt>> &stmts) {
   try {
-    for (std::unique_ptr<Stmt> &stmt : stmts) {
+    for (std::shared_ptr<Stmt> &stmt : stmts) {
       std::visit(*this, *stmt);
     }
   } catch (RuntimeError *error) {
@@ -246,7 +258,7 @@ void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {
   }
 }
 
-LiteralObject Interpreter::evaluate(Expr expr) const {
+LiteralObject Interpreter::evaluate(Expr &expr) {
   return std::visit(*this, expr);
 }
 
@@ -265,4 +277,8 @@ void Interpreter::executeBlock(std::vector<std::shared_ptr<Stmt>> statements,
     this->environment = previous;
     throw error;
   }
+}
+
+void Interpreter::resolve(std::shared_ptr<Expr> expr, int hops, size_t id) {
+  locals.insert({id, hops});
 }

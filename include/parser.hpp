@@ -52,5 +52,5 @@ private:
 
 public:
   Parser(std::vector<std::shared_ptr<Token>> tokens);
-  std::vector<std::unique_ptr<Stmt>> parse();
+  std::vector<std::shared_ptr<Stmt>> parse();
 };

@@ -27,6 +27,10 @@ void Environment::assign(Token name, LiteralObject value) {
   throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
 }
 
+void Environment::assignAt(int distance, Token name, LiteralObject value) {
+  ancestor(distance)->values[name.lexeme] = value;
+}
+
 LiteralObject Environment::get(Token name) {
   if (values.count(name.lexeme)) {
     return values[name.lexeme];
@@ -37,4 +41,18 @@ LiteralObject Environment::get(Token name) {
   }
 
   throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+}
+
+LiteralObject Environment::getAt(int distance, Token name) {
+  return ancestor(distance)->values[name.lexeme];
+}
+
+Environment *Environment::ancestor(int distance) {
+  Environment *env = this;
+
+  for (int i = 0; i < distance; i++) {
+    env = env->enclosing.get();
+  }
+
+  return env;
 }

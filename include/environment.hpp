@@ -16,5 +16,8 @@ public:
 
   void define(std::string name, LiteralObject value);
   void assign(Token name, LiteralObject value);
+  void assignAt(int distance, Token name, LiteralObject value);
   LiteralObject get(Token name);
+  LiteralObject getAt(int distance, Token name);
+  Environment *ancestor(int distance);
 };

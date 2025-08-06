@@ -478,8 +478,8 @@ std::unique_ptr<Stmt> Parser::declaration() {
   }
 }
 
-std::vector<std::unique_ptr<Stmt>> Parser::parse() {
-  std::vector<std::unique_ptr<Stmt>> statements{};
+std::vector<std::shared_ptr<Stmt>> Parser::parse() {
+  std::vector<std::shared_ptr<Stmt>> statements{};
 
   while (!isAtEnd()) {
     std::unique_ptr<Stmt> stmt = declaration();

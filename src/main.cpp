@@ -3,6 +3,7 @@
 #include "interpreter.hpp"
 #include "lox_callable.hpp"
 #include "parser.hpp"
+#include "resolver.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
 #include <cstdlib>
@@ -51,7 +52,13 @@ void run(std::string source) {
 
   std::shared_ptr<Parser> parser = std::make_shared<Parser>(tokens);
 
-  std::vector<std::unique_ptr<Stmt>> stmts = std::move(parser->parse());
+  std::vector<std::shared_ptr<Stmt>> stmts = std::move(parser->parse());
+
+  if (errorReporter.hadError)
+    return;
+
+  std::shared_ptr<Resolver> resolver = std::make_shared<Resolver>(interpreter);
+  resolver->resolve(stmts);
 
   if (errorReporter.hadError)
     return;
