@@ -35,6 +35,8 @@ void Resolver::operator()(Var &stmt) {
 void Resolver::operator()(Func &stmt) {
   declare(stmt.name);
   define(stmt.name);
+
+  resolveFunction(stmt, FUNCTION);
 }
 
 void Resolver::operator()(Expression &stmt) { resolve(stmt.expr); }
