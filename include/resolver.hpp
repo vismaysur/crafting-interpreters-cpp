@@ -21,6 +21,8 @@ public:
 
   void operator()(Block &block);
 
+  void operator()(Class &klass);
+
   void operator()(Var &stmt);
 
   void operator()(Expression &stmt);
@@ -50,6 +52,10 @@ public:
   void operator()(Logical &expr);
 
   void operator()(Unary &expr);
+
+  void operator()(Get &expr);
+
+  void operator()(Set &expr);
 
   void declare(Token name);
 

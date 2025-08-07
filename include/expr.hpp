@@ -10,13 +10,15 @@ struct Assign;
 struct Logical;
 struct Binary;
 struct Call;
+struct Get;
+struct Set;
 struct Grouping;
 struct Literal;
 struct Unary;
 struct Variable;
 
-using Expr = std::variant<Assign, Logical, Binary, Call, Grouping, Literal,
-                          Unary, Variable>;
+using Expr = std::variant<Assign, Logical, Binary, Call, Get, Set, Grouping,
+                          Literal, Unary, Variable>;
 
 struct Assign {
   std::optional<size_t> id;
@@ -55,6 +57,22 @@ struct Call {
   Call(std::shared_ptr<Expr> callee, Token paren,
        std::vector<std::shared_ptr<Expr>> args)
       : callee(callee), paren(paren), args(args) {}
+};
+
+struct Get {
+  std::shared_ptr<Expr> object;
+  Token name;
+
+  Get(std::shared_ptr<Expr> object, Token name) : object(object), name(name) {}
+};
+
+struct Set {
+  std::shared_ptr<Expr> object;
+  Token name;
+  std::shared_ptr<Expr> value;
+
+  Set(std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value)
+      : object(object), name(name), value(value) {}
 };
 
 struct Grouping {

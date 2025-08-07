@@ -41,6 +41,7 @@ private:
   std::unique_ptr<Stmt> expressionStatement();
   std::unique_ptr<Stmt> statement();
   std::unique_ptr<Stmt> declaration();
+  std::unique_ptr<Stmt> classDeclaration();
   std::unique_ptr<Stmt> varDeclaration();
   std::unique_ptr<Stmt> whileStatement();
   std::unique_ptr<Stmt> forStatement();

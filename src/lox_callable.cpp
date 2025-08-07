@@ -1,10 +1,12 @@
 #include "lox_callable.hpp"
 #include "environment.hpp"
+#include "expr.hpp"
 #include "stmt.hpp"
 #include "token.hpp"
 #include <ctime>
 #include <iostream>
 #include <memory>
+#include <variant>
 
 // LoxCallable
 
@@ -53,4 +55,32 @@ LiteralObject LoxFunc::call(Interpreter interpreter,
 
 std::string LoxFunc::toString() const {
   return "<fn " + funcDeclaration->name.lexeme + ">";
+}
+
+// LoxClass
+
+LoxClass::LoxClass(std::string name) { this->name = name; }
+
+int LoxClass::arity() { return 0; }
+
+LiteralObject LoxClass::call(Interpreter interpreter,
+                             std::vector<LiteralObject> args) {
+  std::shared_ptr<LoxInstance> instance = std::make_shared<LoxInstance>(this);
+  return instance;
+}
+
+std::string LoxClass::toString() const { return this->name; }
+
+// LoxInstance
+
+LoxInstance::LoxInstance(LoxClass *klass) { this->klass = klass; }
+
+std::string LoxInstance::toString() const {
+  return "<" + klass->name + " instance>";
+}
+
+LiteralObject LoxInstance::get(Token name) { return fields[name.lexeme]; }
+
+void LoxInstance::set(Token name, LiteralObject value) {
+  fields[name.lexeme] = value;
 }

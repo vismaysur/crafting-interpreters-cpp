@@ -20,6 +20,10 @@ struct Interpreter {
 
   LiteralObject operator()(Grouping &grouping);
 
+  LiteralObject operator()(Get &get);
+
+  LiteralObject operator()(Set &set);
+
   LiteralObject operator()(Literal &literal);
 
   LiteralObject operator()(Logical &logical);
@@ -27,6 +31,8 @@ struct Interpreter {
   LiteralObject operator()(Variable &variable);
 
   void operator()(Block &stmt);
+
+  void operator()(Class &stmt);
 
   void operator()(Print &stmt);
 

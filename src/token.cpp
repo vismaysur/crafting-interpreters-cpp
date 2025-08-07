@@ -2,6 +2,7 @@
 #include "lox_callable.hpp"
 #include "token_type.hpp"
 #include <iomanip>
+#include <iostream>
 #include <string>
 
 Token::Token(TokenType type, std::string lexeme, LiteralObject literal,
@@ -33,6 +34,11 @@ std::string StringifyLiteralVisitor::operator()(
   return callable->toString();
 }
 
+std::string StringifyLiteralVisitor::operator()(
+    std::shared_ptr<LoxInstance> instance) const {
+  return instance->toString();
+}
+
 bool TruthyLiteralVisitor::operator()(std::monostate) const { return false; }
 
 bool TruthyLiteralVisitor::operator()(std::string str) const { return true; }
@@ -43,6 +49,11 @@ bool TruthyLiteralVisitor::operator()(bool val) const { return val; }
 
 bool TruthyLiteralVisitor::operator()(
     std::shared_ptr<LoxCallable> callable) const {
+  return true;
+}
+
+bool TruthyLiteralVisitor::operator()(
+    std::shared_ptr<LoxInstance> instance) const {
   return true;
 }
 

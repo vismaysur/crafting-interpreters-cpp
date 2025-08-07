@@ -35,3 +35,29 @@ public:
                      std::vector<LiteralObject> args) override;
   std::string toString() const override;
 };
+
+class LoxClass : public LoxCallable {
+public:
+  std::string name;
+
+  LoxClass(std::string name);
+
+  int arity() override;
+  LiteralObject call(Interpreter interpreter,
+                     std::vector<LiteralObject> args) override;
+  std::string toString() const override;
+};
+
+class LoxInstance {
+public:
+  LoxClass *klass;
+  std::unordered_map<std::string, LiteralObject> fields{};
+
+  LoxInstance(LoxClass *name);
+
+  std::string toString() const;
+
+  LiteralObject get(Token name);
+
+  void set(Token name, LiteralObject value);
+};

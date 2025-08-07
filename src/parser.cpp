@@ -58,6 +58,10 @@ std::unique_ptr<Expr> Parser::assignment() {
       Variable variable = std::get<Variable>(*expr);
       Assign assign(variable.name, std::move(value));
       return std::make_unique<Expr>(assign);
+    } else if (std::holds_alternative<Get>(*expr)) {
+      Get get = std::get<Get>(*expr);
+      Set setExpr(get.object, get.name, std::move(value));
+      return std::make_unique<Expr>(setExpr);
     }
 
     error(*equals, "Invalid assignment target.");
@@ -167,6 +171,11 @@ std::unique_ptr<Expr> Parser::call() {
   while (true) {
     if (match({TokenType::LEFT_PAREN})) {
       expr = finishCall(std::move(expr));
+    } else if (match({TokenType::DOT})) {
+      std::shared_ptr<Token> name =
+          consume(TokenType::IDENTIFIER, "Expected property name after '.'");
+      Get get(std::move(expr), *name);
+      expr = std::make_unique<Expr>(get);
     } else {
       break;
     }
@@ -413,6 +422,23 @@ std::unique_ptr<Stmt> Parser::statement() {
   return expressionStatement();
 }
 
+std::unique_ptr<Stmt> Parser::classDeclaration() {
+  Token name = *consume(TokenType::IDENTIFIER, "Expected class name.");
+  consume(TokenType::LEFT_BRACE, "Expected '{' before class name.");
+
+  std::vector<Func> methods{};
+  while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+    std::unique_ptr<Stmt> stmt = function("method");
+    methods.push_back(std::get<Func>(*stmt));
+  }
+
+  consume(TokenType::RIGHT_BRACE, "Expected '}' after class body.");
+
+  Class klass(name, methods);
+
+  return std::make_unique<Stmt>(klass);
+}
+
 std::unique_ptr<Stmt> Parser::varDeclaration() {
   std::shared_ptr<Token> token =
       consume(TokenType::IDENTIFIER, "Expected variable name.");
@@ -462,6 +488,10 @@ std::unique_ptr<Stmt> Parser::function(std::string kind) {
 
 std::unique_ptr<Stmt> Parser::declaration() {
   try {
+    if (match({TokenType::CLASS})) {
+      return classDeclaration();
+    }
+
     if (match({TokenType::FUN})) {
       return function("function");
     }

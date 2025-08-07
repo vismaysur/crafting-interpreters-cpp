@@ -3,10 +3,12 @@
 #include "expr.hpp"
 #include "token.hpp"
 #include <memory>
+#include <optional>
 #include <variant>
 #include <vector>
 
 struct Block;
+struct Class;
 struct Expression;
 struct Func;
 struct If;
@@ -16,13 +18,20 @@ struct Var;
 struct While;
 
 using Stmt =
-    std::variant<Block, Expression, Func, If, Print, Return, Var, While>;
+    std::variant<Block, Class, Expression, Func, If, Print, Return, Var, While>;
 
 struct Block {
   std::vector<std::shared_ptr<Stmt>> statements;
 
   Block(std::vector<std::shared_ptr<Stmt>> statements)
       : statements(statements) {}
+};
+
+struct Class {
+  Token name;
+  std::vector<Func> methods;
+
+  Class(Token name, std::vector<Func> methods) : name(name), methods(methods) {}
 };
 
 struct Expression {

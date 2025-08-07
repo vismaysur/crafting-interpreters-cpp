@@ -19,6 +19,11 @@ void Resolver::operator()(Block &block) {
   endScope();
 }
 
+void Resolver::operator()(Class &stmt) {
+  declare(stmt.name);
+  define(stmt.name);
+}
+
 void Resolver::operator()(Var &stmt) {
   declare(stmt.name);
   if (stmt.initializer != nullptr) {
@@ -30,8 +35,6 @@ void Resolver::operator()(Var &stmt) {
 void Resolver::operator()(Func &stmt) {
   declare(stmt.name);
   define(stmt.name);
-
-  resolveFunction(stmt, FunctionType::FUNCTION);
 }
 
 void Resolver::operator()(Expression &stmt) { resolve(stmt.expr); }
@@ -99,6 +102,13 @@ void Resolver::operator()(Grouping &expr) {
   expr.id = counter++;
 
   resolve(expr.expression);
+}
+
+void Resolver::operator()(Get &expr) { resolve(expr.object); }
+
+void Resolver::operator()(Set &expr) {
+  resolve(expr.value);
+  resolve(expr.object);
 }
 
 void Resolver::operator()(Literal &expr) { expr.id = counter++; }

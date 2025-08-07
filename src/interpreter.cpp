@@ -150,13 +150,15 @@ LiteralObject Interpreter::operator()(Call &expr) {
                         " args, got " + std::to_string(args.size()) + ".");
   }
 
+  LiteralObject retObj = std::monostate{};
+
   try {
-    function->call(*this, args);
+    retObj = function->call(*this, args);
   } catch (FuncReturn *retVal) {
     return retVal->value;
   }
 
-  return std::monostate{};
+  return retObj;
 }
 
 LiteralObject Interpreter::operator()(Logical &expr) {
@@ -171,6 +173,29 @@ LiteralObject Interpreter::operator()(Logical &expr) {
   }
 
   return evaluate(*expr.right);
+}
+
+LiteralObject Interpreter::operator()(Get &expr) {
+  LiteralObject obj = evaluate(*expr.object);
+
+  if (std::holds_alternative<std::shared_ptr<LoxInstance>>(obj)) {
+    return std::get<std::shared_ptr<LoxInstance>>(obj)->get(expr.name);
+  }
+
+  throw new RuntimeError(expr.name, "Only instances have properties.");
+}
+
+LiteralObject Interpreter::operator()(Set &expr) {
+  LiteralObject obj = evaluate(*expr.object);
+
+  if (!std::holds_alternative<std::shared_ptr<LoxInstance>>(obj)) {
+    throw new RuntimeError(expr.name, "Only instances have fields.");
+  }
+
+  LiteralObject value = evaluate(*expr.value);
+  std::get<std::shared_ptr<LoxInstance>>(value)->set(expr.name, value);
+
+  return value;
 }
 
 LiteralObject Interpreter::operator()(Variable &expr) {
@@ -190,6 +215,13 @@ LiteralObject Interpreter::lookUpVariable(Token name, Variable &expr) {
 void Interpreter::operator()(Block &stmt) {
   executeBlock(stmt.statements,
                std::make_shared<Environment>(this->environment));
+}
+
+void Interpreter::operator()(Class &stmt) {
+  environment->define(stmt.name.lexeme, std::monostate{});
+  std::shared_ptr<LoxCallable> klass =
+      std::make_shared<LoxClass>(stmt.name.lexeme);
+  environment->assign(stmt.name, klass);
 }
 
 void Interpreter::operator()(Print &stmt) {

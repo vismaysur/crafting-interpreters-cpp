@@ -6,9 +6,11 @@
 #include <variant>
 
 class LoxCallable;
+class LoxInstance;
 
-using LiteralObject = std::variant<std::monostate, std::string, double, bool,
-                                   std::shared_ptr<LoxCallable>>;
+using LiteralObject =
+    std::variant<std::monostate, std::string, double, bool,
+                 std::shared_ptr<LoxCallable>, std::shared_ptr<LoxInstance>>;
 
 struct StringifyLiteralVisitor {
   std::string operator()(std::monostate) const;
@@ -20,6 +22,8 @@ struct StringifyLiteralVisitor {
   std::string operator()(bool val) const;
 
   std::string operator()(std::shared_ptr<LoxCallable> callable) const;
+
+  std::string operator()(std::shared_ptr<LoxInstance> instance) const;
 };
 
 struct TruthyLiteralVisitor {
@@ -32,6 +36,8 @@ struct TruthyLiteralVisitor {
   bool operator()(bool val) const;
 
   bool operator()(std::shared_ptr<LoxCallable> callable) const;
+
+  bool operator()(std::shared_ptr<LoxInstance> instance) const;
 };
 
 class Token {

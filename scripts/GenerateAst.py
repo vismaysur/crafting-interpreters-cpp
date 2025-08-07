@@ -44,7 +44,7 @@ def defineAst(output_dir: str, base_name: str, types: Iterable[str]):
         f.write('#include "token.hpp"\n')
         f.write("#include <variant>\n")
         f.write("#include <vector>\n")
-        f.write("#include <memory>\n\n")
+        f.write("#include <memory>\n")
         f.write("#include <optiona>\n\n")
 
         # Forward declarations for node types
@@ -81,6 +81,8 @@ def main():
             "Logical= std::optional<size_t> id, std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right",
             "Binary= std::optional<size_t> id, std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right",
             "Call= std::optional<size_t> id, std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> args",
+            "Get= std::shared_ptr<Expr> object, Token name",
+            "Set= std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value",
             "Grouping= std::optional<size_t> id, std::shared_ptr<Expr> expression",
             "Literal= std::optional<size_t> id, LiteralObject value",
             "Unary= std::optional<size_t> id, Token op, std::shared_ptr<Expr> right",
@@ -93,6 +95,7 @@ def main():
         "Stmt",
         [
             "Block= std::vector<std::shared_ptr<Stmt>> statements",
+            "Class= Token name, std::vector<Func> methods",
             "Expression= std::shared_ptr<Expr> expr",
             "Func= Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body",
             "If= std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
